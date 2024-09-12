@@ -7,21 +7,22 @@
 #define SOF_BYTE 0xAA
 #define EOF_BYTE 0xEE
 
-// #define APP_BIN_FILE "Application v1.1.bin" // 0x0806000
-// #define APP_BIN_FILE "Application v0.1.bin" // 0x0804000
-
-#define APP_BIN_FILE "app.bin" // 0x0806000
+#define APP1_BIN_FILE "Application v0.1.bin" // 0x0804000
+#define APP2_BIN_FILE "Application v1.1.bin" // 0x0806000
+#define APP3_BIN_FILE "Application v2.1.bin" // 0x0806000
+#define APP4_BIN_FILE "Application v3.1.bin" // 0x0804000
 
 enum response
 {
-    READY_TO_UPLOAD = 0x01,
+    WAIT_FOR_UPLOAD = 0x01,
+    READY_TO_UPLOAD,
     RECEIVE_OK,
     RECEIVE_FULL,
     RECEIVE_ERR
 };
 
 void pack_frame(uint8_t *frame, uint8_t *data, uint16_t pkg_no, uint16_t len);
-uint8_t split_file_to_chunks(uint8_t data[][CHUNK_SIZE]);
+uint8_t split_file_to_chunks(uint8_t data[][CHUNK_SIZE], char *file_name);
 void send_upload_frame(uint8_t app, uint16_t chunk_piece, HANDLE hSerial);
 void send_end_frame(HANDLE hSerial);
 uint8_t receive_frame(HANDLE hSerial);
@@ -32,6 +33,8 @@ int main()
     uint8_t data[128][CHUNK_SIZE] = {{'\0'}, {'\0'}};
     uint8_t frame[128][CHUNK_SIZE + 10] = {0};
     uint16_t chunk_nbr = 0;
+    uint8_t app;
+    char file_name[50];
 
     DWORD bytes_written;
     HANDLE hSerial = CreateFile("\\\\.\\COM17", GENERIC_WRITE | GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -52,10 +55,30 @@ int main()
 
     // Seri port üzerinden veri gönderme
 
-    chunk_nbr = split_file_to_chunks(data);
+    printf("1- App1\n2- App2\n3- App3\n4- App4\n");
+    printf("Enter App No: ");
+    scanf("%d", &app);
+
+    switch (app)
+    {
+    case 1:
+        strcpy(file_name, APP1_BIN_FILE);
+        break;
+    case 2:
+        strcpy(file_name, APP2_BIN_FILE);
+        break;
+    case 3:
+        strcpy(file_name, APP3_BIN_FILE);
+        break;
+    case 4:
+        strcpy(file_name, APP4_BIN_FILE);
+        break;
+    }
+
+    chunk_nbr = split_file_to_chunks(data, file_name);
 
     // Pack and send data =======================================================
-    send_upload_frame(2, chunk_nbr, hSerial);
+    send_upload_frame(app, chunk_nbr, hSerial);
 
     if (receive_frame(hSerial) == READY_TO_UPLOAD)
     {
@@ -98,12 +121,13 @@ int main()
 
     if (receive_frame(hSerial) == RECEIVE_FULL)
     {
-        printf("app.bin file successfully sent!!!\n");
+        printf("'%s' file successfully sent!!!\n", file_name);
     }
     else if (receive_frame(hSerial) == RECEIVE_ERR)
     {
         printf("Error at ending!\n");
     }
+
     // ==========================================================================
     CloseHandle(hSerial);
     // Seri portu kapat
@@ -139,7 +163,7 @@ void pack_frame(uint8_t *frame, uint8_t *data, uint16_t pkg_no, uint16_t len)
     return;
 }
 
-uint8_t split_file_to_chunks(uint8_t data[][CHUNK_SIZE])
+uint8_t split_file_to_chunks(uint8_t data[][CHUNK_SIZE], char *file_name)
 {
     FILE *file;
 
@@ -148,7 +172,7 @@ uint8_t split_file_to_chunks(uint8_t data[][CHUNK_SIZE])
     uint64_t file_size = 0;
     uint64_t br = 0;
 
-    file = fopen(APP_BIN_FILE, "rb");
+    file = fopen(file_name, "rb");
 
     if (file == NULL)
     {
@@ -243,14 +267,17 @@ uint8_t receive_frame(HANDLE hSerial)
             // printf("Response:%x\n", buffer[2]);
             switch (buffer[2])
             {
+            case WAIT_FOR_UPLOAD:
+                printf("Waiting for Upload...\n");
+                break;
             case READY_TO_UPLOAD:
                 printf("Ready to Upload!\n");
                 break;
             case RECEIVE_OK:
-                printf("Receive OK!\n");
+                printf("Receive Success!!\n");
                 break;
             case RECEIVE_FULL:
-                printf("Receive FULL!\n");
+                printf("All Chunks Received!!\n");
                 break;
             case RECEIVE_ERR:
                 printf("Receive ERROR!\n");
