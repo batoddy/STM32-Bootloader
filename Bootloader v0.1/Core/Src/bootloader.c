@@ -182,7 +182,7 @@ HAL_StatusTypeDef upload_to_flash(uint8_t data[][CHUNK_SIZE], uint32_t app_addr,
 	status = HAL_FLASH_Unlock();
 	HAL_Delay(100);
 
-//	EraseInitStruct.TypeErase     =  FLASH_TYPEERASE_MASSERASE;// FLASH_TYPEERASE_SECTORS;
+//	EraseInitStruct.TypeErase     =  FLASH_TYPEERASE_MASSERASE;
 	EraseInitStruct.TypeErase     =  FLASH_TYPEERASE_SECTORS;
 
 	EraseInitStruct.VoltageRange  = 4;
@@ -205,17 +205,6 @@ HAL_StatusTypeDef upload_to_flash(uint8_t data[][CHUNK_SIZE], uint32_t app_addr,
 			}
 		}
 	}
-
-
-//	data_word[0] = 0;
-//	data_word[1] = 1000;
-//	data_word[2] = 123;
-//	data_word[3] = 34232;
-//	status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,(app_addr),(data_word[0]));
-//	status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,(app_addr + 16),(data_word[1]));
-//	status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,(app_addr + 32),(data_word[2]));
-//	status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,(app_addr + 48),(data_word[3]));
-
 	HAL_FLASH_Lock();
 	return HAL_OK;
 }
