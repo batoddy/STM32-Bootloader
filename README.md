@@ -35,5 +35,5 @@ Bootloader =========        OK RESPONSE       =========>> PC
 Bootloader <<========     UPLOAD END FRAME    =========== PC  
 Bootloader ========= ALL CHUNKS RECEIVED RPNS =========>> PC  
 
-                      FILE SENT COMPLETE !!!
+!!! FILE SENT COMPLETE !!!
 
